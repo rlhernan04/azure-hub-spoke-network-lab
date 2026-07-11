@@ -18,7 +18,7 @@ vnet-hub -- 10.0.0.0/16 -- AzureFirewallSubnet(10.0.0.0/26) -- Hosts Azure Firew
 vnet-spoke-web -- 10.1.0.0/16 -- snet-web(10.1.1.0/24) -- Web tier
 vnet-spoke-app -- 10.2.0.0/16 -- snet-app(10.2.1.0/24) -- App tier
 
-** All resources were grouped under a single resource group (hubspoke-lab) in East US **
+**All resources were grouped under a single resource group (hubspoke-lab) in East US**
 
 # Build Steps
 
@@ -82,26 +82,26 @@ Created a Log Analytics workspace (law-hubspoke) and configured diagnostic setti
 
 
 # Glossary
-VNet (Virtual Network) - Azure's version of a private network. It's an isolated address space where you place resources like VMs, and it controls what can talk to what
+**VNet (Virtual Network)** - Azure's version of a private network. It's an isolated address space where you place resources like VMs, and it controls what can talk to what
 
-Subnet - A smaller slice of a VNet's address range. VNets get divided into subnets so different resources (web servers, databases, firewalls) can be grouped and controlled seperately
+**Subnet** - A smaller slice of a VNet's address range. VNets get divided into subnets so different resources (web servers, databases, firewalls) can be grouped and controlled seperately
 
-Hub-and-Spoke - A netowrk design pattern where one central network (the hub) holds shared resources, and multiple other networks (spokes) connect to it, but not to each other directly
+**Hub-and-Spoke** - A netowrk design pattern where one central network (the hub) holds shared resources, and multiple other networks (spokes) connect to it, but not to each other directly
 
-Peering - The Azure feature that connects to VNets together so resources in each can communicate, as if they were on the same network. Peering must be configured on both sides of the connection
+**Peering** - The Azure feature that connects to VNets together so resources in each can communicate, as if they were on the same network. Peering must be configured on both sides of the connection
 
-Azure Firewall - A managed, cloud-based firewall service, It inspects traffic passing through it and applies rules to allow or deny that traffic based on source, destination, port, and protocol
+**Azure Firewall** - A managed, cloud-based firewall service, It inspects traffic passing through it and applies rules to allow or deny that traffic based on source, destination, port, and protocol
 
-NSG (Network Security Group) - A set of allow/deny rules attached directly to a subnet or network interface.
+**NSG (Network Security Group)** - A set of allow/deny rules attached directly to a subnet or network interface.
 
-UDR (User Defined Route) / Route table - A custom rule that overrides Azure;s default routing behavior, telling traffic to take a specific path instead of the direct route it would normally take
+**UDR (User Defined Route) / Route table** - A custom rule that overrides Azure;s default routing behavior, telling traffic to take a specific path instead of the direct route it would normally take
 
-Private IP - An IP address only reachable from within a private network, not from the public internet
+**Private IP** - An IP address only reachable from within a private network, not from the public internet
 
-Public IP — An IP address reachable from the internet. The test VMs in this project deliberately have none, since proving they can't be reached externally was part of the goal.
+**Public IP** — An IP address reachable from the internet. The test VMs in this project deliberately have none, since proving they can't be reached externally was part of the goal.
 
-Network Watcher — An Azure diagnostic tool used to test and troubleshoot network behavior, in this project, its "IP Flow Verify" feature was used to simulate traffic and confirm whether it would be allowed or denied.
+**Network Watcher** — An Azure diagnostic tool used to test and troubleshoot network behavior, in this project, its "IP Flow Verify" feature was used to simulate traffic and confirm whether it would be allowed or denied.
 
-Log Analytics workspace — A centralized place where Azure resources send logs so they can be searched and analyzed, in this case, using KQL.
+**Log Analytics workspace** — A centralized place where Azure resources send logs so they can be searched and analyzed, in this case, using KQL.
 
-KQL (Kusto Query Language) — The query language used to search and filter log data in Azure Log Analytics and Microsoft Sentinel.
+**KQL (Kusto Query Language)** — The query language used to search and filter log data in Azure Log Analytics and Microsoft Sentinel.
