@@ -14,9 +14,11 @@ Hub-and-spoke solves this by centralizing the choke point. Instead of trusting e
 
 ## IP address planning
 
-vnet-hub -- 10.0.0.0/16 -- AzureFirewallSubnet(10.0.0.0/26) -- Hosts Azure Firewall
-vnet-spoke-web -- 10.1.0.0/16 -- snet-web(10.1.1.0/24) -- Web tier
-vnet-spoke-app -- 10.2.0.0/16 -- snet-app(10.2.1.0/24) -- App tier
+**vnet-hub** -- 10.0.0.0/16 -- AzureFirewallSubnet(10.0.0.0/26) -- Hosts Azure Firewall
+
+**vnet-spoke-web** -- 10.1.0.0/16 -- snet-web(10.1.1.0/24) -- Web tier
+
+**vnet-spoke-app** -- 10.2.0.0/16 -- snet-app(10.2.1.0/24) -- App tier
 
 **All resources were grouped under a single resource group (hubspoke-lab) in East US**
 
@@ -39,49 +41,50 @@ Peered each spoke to the hub (not to eachother, that is the core design principl
 Deployed a Standard SKU Azure Firewall (fw-hub) into the hub's AzureFirewallSubnet, with its own dedicated public IP (10.0.0.4). This became the mandatory inspection point for cross-spoke traffic.
 
 ## 5. Route Tables (UDR)
-This step enforces the "traffic must go through the firewall" behavior, peering alone would let spokes talk directly. CReated rt-spoke-to-firewall with a single route:
-    - Destination: 10.0.0.0/8 (covers all three VNets)
-    - Next hop type: Virtual appliance
-    - Next hop address: the firewall's private IP
+
+This step enforces the "traffic must go through the firewall" behavior, peering alone would let spokes talk directly. CReated rt-spoke-to-firewall with a single route: - Destination: 10.0.0.0/8 (covers all three VNets) - Next hop type: Virtual appliance - Next hop address: the firewall's private IP
 
 Associated this route table with both snet-web and snet-app, so any traffic leaving either spoke toward the shared address space now routes through the firewall instead of taking the direct peered path.
 
 ## 6. Firewall rules
-By default, Azure Firewall denies everything passing through it, which is the correct deafuly-deny starrting point: Added one explicit network rule connection (allow-web-to-app, priority 100, action Allow):
-    - Source: 10.1.1.0/24 (web subnet)
-    - Destination: 10.2.1.0/24 (app subnet)
-    - Protocol: TCP, port 80
+
+By default, Azure Firewall denies everything passing through it, which is the correct deafuly-deny starrting point: Added one explicit network rule connection (allow-web-to-app, priority 100, action Allow): - Source: 10.1.1.0/24 (web subnet) - Destination: 10.2.1.0/24 (app subnet) - Protocol: TCP, port 80
 Everything else passing through the firewall remains denied by dafault.
 
 ## 7. Network Security Groups
-Added a second, independent layer of access control directly on the subnets:
-    - nsg-web associated with snet-web
-    - nsg-app associated with snet-app, with an explicit inbound rule (allow-Web-To-App-HTTP) permitting only 10.1.1.0/24 on port 80, everything else caught by Azure's defauly DenyAllInBound rule
+
+Added a second, independent layer of access control directly on the subnets: - nsg-web associated with snet-web - nsg-app associated with snet-app, with an explicit inbound rule (allow-Web-To-App-HTTP) permitting only 10.1.1.0/24 on port 80, everything else caught by Azure's defauly DenyAllInBound rule
 
 This defense-in-depth approach means even if the firewall or routing were ever misconfigured, the NSGs independently enforce the same intent.
 
 ## 8. Test VMs
+
 Deployed two Ubuntu 24.04 VMs (vm-web-test, vm-app-test), one in each spoke subnet, deliberately with no pubic IP addresses. This was intentional: proving the internet cannot reach either VM directly is part of the point of the architecture, not an oversight.
 
 ## 9. Proving segmentation works
+
 Rather than logging into the VMs, connectivity was validated using Azure Netowk Watcher's IP Flow Verify tool, which evaluates a given traffic pattern (source/destination IP, port, protocol) against the actual NSG and routing configuration in place.
+
 ### Test 1 -- Web -> App on port 80:
+
 Result: Access allowed, via rule Allow-Web-To-App-HTTP on nsg-app
 
 This confirms the explicit rule written for this project is what's permitting the intended traffic
 
 ### Test 2 -- Internet -> App VM:
+
 Simulated traffic from a public IP (8.8.8.8) toward the app VM
 Result: Access Denied, via rule DenyAllInBound
 
 This confirms that without an explicit allow rule, nothing external can reach the app tier directly, exactly the segmentation goal.
 
 ## 10. Log Analytics + firewall diagnostics
-Created a Log Analytics workspace (law-hubspoke) and configured diagnostic settings on the firewall to send Network Rule and Application Rule logs to it, enabling KQL-based querying of firewall decisions:
-** Note on results: This query returned zero rows during testing. Network Watchers IP Flow Verify evaluates rule logic without generating real TCP traffic through the firewalls data plane, so no firewall-level log entries were produced. The diagnostic pipeline itself was confirmed functional(the query executed successfully against the correct table with no errors), it simply had nothing to log yet. In a production scenario or with real inter-VM traffic generated over time, this same query would surface live allow/deny decisions as they occur.
 
+Created a Log Analytics workspace (law-hubspoke) and configured diagnostic settings on the firewall to send Network Rule and Application Rule logs to it, enabling KQL-based querying of firewall decisions:
+\*\* Note on results: This query returned zero rows during testing. Network Watchers IP Flow Verify evaluates rule logic without generating real TCP traffic through the firewalls data plane, so no firewall-level log entries were produced. The diagnostic pipeline itself was confirmed functional(the query executed successfully against the correct table with no errors), it simply had nothing to log yet. In a production scenario or with real inter-VM traffic generated over time, this same query would surface live allow/deny decisions as they occur.
 
 # Glossary
+
 **VNet (Virtual Network)** - Azure's version of a private network. It's an isolated address space where you place resources like VMs, and it controls what can talk to what
 
 **Subnet** - A smaller slice of a VNet's address range. VNets get divided into subnets so different resources (web servers, databases, firewalls) can be grouped and controlled seperately
