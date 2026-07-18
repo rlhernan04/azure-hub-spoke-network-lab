@@ -12,6 +12,8 @@ Hub-and-spoke solves this by centralizing the choke point. Instead of trusting e
 
 # Architecture
 
+![Architecture diagram](./images/hub_spoke_architecture.png)
+
 ## IP address planning
 
 **vnet-hub** -- 10.0.0.0/16 -- AzureFirewallSubnet(10.0.0.0/26) -- Hosts Azure Firewall
