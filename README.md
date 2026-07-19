@@ -36,7 +36,7 @@ Deployed all three VNets (hub,spoke-web,spoke-app) in the same region with non-o
 
 ## 3. VNet peering
 
-Peered each spoke to the hub (not to eachother, that is the core design principle: spokes never talk directly). For each peering: - Enabled "allow forwarded traffic" on the spoke side, which is what allows traffic that is been redirected by the firewall to actually reach its destination instead of being silently dropped - Confirmed both peerings showed "Fully Synchronized" and "Connected" status before moving on
+Peered each spoke to the hub (not to each other, that is the core design principle: spokes never talk directly). For each peering: - Enabled "allow forwarded traffic" on the spoke side, which is what allows traffic that is been redirected by the firewall to actually reach its destination instead of being silently dropped - Confirmed both peerings showed "Fully Synchronized" and "Connected" status before moving on
 
 ## 4. Azure Firewall Deployment
 
@@ -44,7 +44,7 @@ Deployed a Standard SKU Azure Firewall (fw-hub) into the hub's AzureFirewallSubn
 
 ## 5. Route Tables (UDR)
 
-This step enforces the "traffic must go through the firewall" behavior, peering alone would let spokes talk directly. CReated rt-spoke-to-firewall with a single route: - Destination: 10.0.0.0/8 (covers all three VNets) - Next hop type: Virtual appliance - Next hop address: the firewall's private IP
+This step enforces the "traffic must go through the firewall" behavior, peering alone would let spokes talk directly. Created rt-spoke-to-firewall with a single route: - Destination: 10.0.0.0/8 (covers all three VNets) - Next hop type: Virtual appliance - Next hop address: the firewall's private IP
 
 Associated this route table with both snet-web and snet-app, so any traffic leaving either spoke toward the shared address space now routes through the firewall instead of taking the direct peered path.
 
